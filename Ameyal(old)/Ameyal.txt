@@ -1,0 +1,53 @@
+======= Ameyal ====
+
+== NFS ====
+
+I installed NFS server:
+sudo yum install rpcbind nfs-utils nfs-utils-lib
+
+-- Avoid other ip addresses to connect
+sudo vi /etc/hosts.deny
+    rpcbind mound nfsd statd lockd rquotad : ALL
+sudo vi /etc/hosts.allow
+    rpcbind mound nfsd statd lockd rquotad : 127.0.0.1, 192.168.1.103
+    
+-- Set nfs to start when power on, and start the service
+sudo chkconfig nfs on
+sudo service rpcbind start
+service nfs start
+
+== NFS WRF ====
+-- We are sharing /DATA/respaldo_pronostico_operativo/wrf/salidas/ to OWGIS
+sudo vi /etc/exports
+    /DATA/respaldo_pronostico_operativo/wrf/salidas/ 192.168.1.103/32(ro,sync,no_subtree_check,no_root_squash)
+
+sudo exportfs -a
+
+-- Show that the folder is being shared (in server machine)
+showmount -e 192.168.1.106
+
+-- Once
+sudo vi /etc/exports
+    /DATA/respaldo_pronostico_operativo/wrf/salidas/ 192.168.1.103/32(ro,sync,no_subtree_check,no_root_squash)
+
+
+== NFS GFS ====
+-- We are sharing /DATA/sipronomo/modelos/wrf/datos_entrada/dinamicos to OWGIS
+sudo vi /etc/exports
+    /DATA/sipronomo/modelos/wrf/datos_entrada/dinamicos/ 192.168.1.103/32(ro,sync,no_subtree_check,no_root_squash)
+
+sudo exportfs -a
+   
+-- Set nfs to start when power on, and start the service
+sudo chkconfig nfs on
+sudo service rpcbind start
+service nfs start
+
+-- Show that the folder is being shared (in server machine)
+showmount -e 192.168.1.106
+
+-- Once
+sudo vi /etc/exports
+    /DATA/respaldo_pronostico_operativo/wrf/salidas/ 192.168.1.103/32(ro,sync,no_subtree_check,no_root_squash)
+
+

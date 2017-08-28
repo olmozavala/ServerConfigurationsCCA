@@ -1,0 +1,99 @@
+======= OWGIS ====
+This server has mostly two components installed: Tomcat and Postgres
+-- Important folders to backup:
+/usr/local/tomcat/webapps/geoserver
+/usr/local/tomcat/webapps/ncWMS_2015
+/usr/local/owgisconfig
+/ServerData
+/ServerScripts
+
+=== Tomcat 8.5.4 ====
+-- Installed with: apr_1.5.2 and tomcat-native-1.2.8 java18.0_101
+In folder /usr/local/tomcat following my 'Tomcat Production tutorial'
+
+-- Installed servlet applications:
+ncWMS_2015 --> Customized ncWMS version that contains the netcdf files for OWGIS
+    gulf_vel
+    world_temp
+    gulf_temp
+    global_uv_2015
+    global_ts_2015
+
+OWGISV2Template --> Current version of OWGIS
+
+geoserver --> Main layers for the OWGIS template
+    DATA_DIR --> /ServerData/GeoserverData	
+    world_countries
+    world_cities
+    us_states
+    Precipitation
+    temp_max_mex
+
+==== Postgresql 9.5 PostGIS 2.2 ===
+
+===== ncWMS ==============
+admin psw: \5CBby*c
+
+===== Geoservers ==============
+--- geoservercenapred ---
+Users:
+    admin psw: ef67,Q74
+    ozcen psw: 7syh}5s6
+    raul psw: nPw4ac>
+
+--- geoserverdatafest ---
+    admin psw: ef67,Q74
+
+--- geoservercaro ---
+    caro psw:rKo88-p5&
+
+--- geoservermex ---
+
+==== MySQL ========
+
+
+==== NFS ======
+-- fstab from Amistli to /ServerData (WRF output)
+sudo vi /etc/fstab
+    10.20.12.127:/DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ /ServerData/WRF nfs   ro,hard,intr    0   0
+
+-- fstab from ZION to /ServerData (WRF_to_OWGIS output)
+    10.20.12.138:/DATA/OUT/WRF/ /ServerData/WRF/WRF_OWGIS_HIST nfs   ro,hard,intr    0   0
+
+-- fstab from LUSTRE to /ServerData (WRF_to_OWGIS output)
+    172.19.253.253:/LUSTRE/OPERATIVO/ /ServerData/WRF-OMETEOTL nfs   ro,hard,intr    0   0
+
+-- (OLD) fstab from Amistli to /ServerData (GFS forecast downloaded files)
+    10.20.12.127:/DATA/respaldo_pronostico_operativo/wrf/entradas/ /ServerData/GFS nfs   ro,hard,intr    0   0
+
+-- FOR TESTING ONLY fstab from Amistli to /ServerData (WRF output)
+sudo mount -t nfs -o proto=tcp,port=2049  10.20.12.127:/DATA/respaldo_pronostico_operativo/wrf/entradas/ /ServerData/GFS
+
+-- !!!!!!!!!!!!!!OLD!!!!!! FROM Ameyal-----
+-- fstab from Ameyal to /ServerData (WRF output)
+sudo vi /etc/fstab
+    192.168.1.106:/DATA/respaldo_pronostico_operativo/wrf/salidas/ /ServerData/AmeyalWRF nfs   ro,hard,intr    0   0
+
+-- fstab from Ameyal to /ServerData (GFS forecast downloaded files)
+sudo vi /etc/fstab
+    192.168.1.106:/DATA/sipronomo/modelos/wrf/datos_entrada/dinamicos/ /ServerData/AmeyalGFS nfs   ro,hard,intr    0   0
+
+===== NFS out ========
+
+==== Global Cron jobs ======
+-- Add the cronjobs in the 'root' cronjobs
+-- Mine didn't work with this line: sudo vi /etc/crontab  I used:
+    crontab -e
+
+-- This is the cronjob for downloading the HYCOM data
+    # Download HYCOM data at 6 am every day
+    0 1     * * * /ServerScripts/GlobalHycomForecast/downloadData.sh
+
+-- This is the cronjob for transforming GRIB to NetCDF
+    # Download HYCOM data at 6 am every day
+    0 4     * * * /ServerScripts/GFS_to_NetCDF/nclToNetCDF
+
+-- This is the cronjob for transforming WRF to NetCDF
+    0 7     * * * /ServerScripts/WRF_to_NetCDF/Run_WRF_to_OWGIS
+
+

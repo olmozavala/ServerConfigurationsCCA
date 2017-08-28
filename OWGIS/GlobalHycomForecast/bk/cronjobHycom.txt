@@ -1,0 +1,2 @@
+# Downloads data everyday at 7 am
+0 6 * * * /ServerScripts/GlobalHycomForecast/downloadData.sh

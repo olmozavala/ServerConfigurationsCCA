@@ -1,0 +1,90 @@
+== NFS ====
+--- Datos WRF ---
+    /DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ 
+--- Datos GFS ---
+    /DATA/respaldo_pronostico_operativo/wrf/entradas/
+
+I installed NFS server:
+sudo yum install rpcbind nfs-utils nfs-utils-lib
+
+-- Avoid other ip addresses to connect (only OWGIS)
+sudo vi /etc/hosts.deny
+    rpcbind mound nfsd statd lockd rquotad : ALL
+sudo vi /etc/hosts.allow
+    rpcbind mound nfsd statd lockd rquotad : 127.0.0.1, 10.20.12.137, 10.20.12.138
+    
+-- Set nfs to start when power on, and start the service
+sudo chkconfig nfs on
+sudo service rpcbind start
+sudo service nfs start
+
+== NFS WRF ====
+-- We are sharing /DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ to OWGIS
+sudo vi /etc/exports
+	/DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ 10.20.12.137/32(ro,sync,no_subtree_check,no_root_squash)
+	/DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ 10.20.12.138/32(ro,sync,no_subtree_check,no_root_squash)
+      /DATA/respaldo_pronostico_operativo/wrf/salidas/version_2010/ 10.20.12.138/32(ro,sync,no_subtree_check,no_root_squash)
+
+sudo exportfs -a
+
+-- Show that the folder is being shared (in server machine)
+showmount -e 10.20.12.127
+
+== NFS GFS ====
+-- We are sharing /DATA/sipronomo/modelos/wrf/datos_entrada/dinamicos to OWGIS
+sudo vi /etc/exports
+    /DATA/respaldo_pronostico_operativo/wrf/entradas/ 10.20.12.137/32(ro,sync,no_subtree_check,no_root_squash)
+
+sudo exportfs -a
+   
+-- Set nfs to start when power on, and start the service
+sudo chkconfig nfs on
+sudo service rpcbind start
+sudo service nfs start
+
+-- Show that the folder is being shared (in server machine)
+showmount -e 10.20.12.127
+
+
+=== Firewall configuration (Amistli has a firewall, so we can't use NFS directly)
+-- Fix the ports used by NFS
+sudo vi /etc/sysconfig/nfs
+	LOCKD_TCPPORT=32803
+	LOCKD_UDPPORT=32769
+	MOUNTD_PORT=892
+	RQUOTAD_PORT=875
+	STATD_PORT=662
+	STATD_OUTGOING_PORT=2020
+
+sudo service nfs restart
+sudo service rpcsvcgssd restart
+
+-- Allow input from iptables for server
+sudo vi /etc/sysconfig/iptables
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p udp --dport 875 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32 -m state --state NEW -p udp --dport 111 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32 -m state --state NEW -p tcp --dport 111 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32 -m state --state NEW -p tcp --dport 2049 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p tcp --dport 32803 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p udp --dport 32769 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p tcp --dport 892 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p udp --dport 892 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p tcp --dport 875 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p udp --dport 875 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32  -m state --state NEW -p tcp --dport 662 -j ACCEPT
+	-A INPUT -s 10.20.12.137/32 -m state --state NEW -p udp --dport 662 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p udp --dport 875 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32 -m state --state NEW -p udp --dport 111 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32 -m state --state NEW -p tcp --dport 111 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32 -m state --state NEW -p tcp --dport 2049 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p tcp --dport 32803 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p udp --dport 32769 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p tcp --dport 892 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p udp --dport 892 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p tcp --dport 875 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p udp --dport 875 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32  -m state --state NEW -p tcp --dport 662 -j ACCEPT
+	-A INPUT -s 10.20.12.138/32 -m state --state NEW -p udp --dport 662 -j ACCEPT
+
+sudo service iptables restart
+

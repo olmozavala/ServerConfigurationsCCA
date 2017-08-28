@@ -1,0 +1,25 @@
+======= JIRA and Development Server ============
+
+======= Users ==========
+sudo groupadd webman
+sudo usermod -a -G webman olmozavala
+
+-- Cuau User ---
+sudo useradd -m -d /home/cuauhtemoc cuauhtemoc
+sudo vi /etc/passwd
+..../home/cuauhtemoc:/bin/bash
+
+sudo passwd cuauhtemoc
+    Current passwd: dW'7FZH4
+sudo usermod -a -G webman cuauhtemoc
+
+-- Change html owner group----
+sudo chown -R root:webman /var/www/html
+sudo chmod -R g+rw /var/www/html
+
+======= MySQL ==========
+mysql -u root -p
+CREATE USER 'cuauh'@'localhost' IDENTIFIED BY 'sB{6G<';
+GRANT ALL PRIVILEGES ON *.* TO 'cuauh'@'%' IDENTIFIED BY 'sB{6G<' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'cuauh'@'localhost' IDENTIFIED BY 'sB{6G<' WITH GRANT OPTION;
+FLUSH PRIVILEGES;

@@ -1,0 +1,38 @@
+======= ZION  ====
+-- Important folders to backup:
+/DATA
+/DATA/Scripts
+/DATA/Out    -- Historic data from WRF to OWGIS
+
+======= Groups =======
+groups  cudam
+
+==== NFS (from others) ======
+-- fstab from Amistli to /ServerData (WRF output)
+sudo vi /etc/fstab
+    10.20.12.127:/DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ /DATA/WRF nfs   ro,hard,intr    0   0
+
+
+==== NFS (to others) ======
+I installed NFS server:
+    sudo apt-get install rpcbind nfs-kernel-server
+
+-- Avoid other ip addresses to connect (only OWGIS)
+sudo vi /etc/hosts.deny
+    rpcbind mound nfsd statd lockd rquotad : ALL
+sudo vi /etc/hosts.allow
+    rpcbind mound nfsd statd lockd rquotad : 127.0.0.1, 10.20.12.137
+    
+-- Set nfs to start when power on, and start the service
+sudo service nfs-kernel-server restart
+
+== NFS WRF ====
+-- We are sharing /DATA/respaldo_pronostico_operativo/wrf/salidas/version_2016/ to OWGIS
+sudo vi /etc/exports
+	/DATA/OUT/WRF/ 10.20.12.137/32(ro,sync,no_subtree_check,no_root_squash)
+
+sudo service portmap restart
+sudo exportfs -a
+
+-- Show that the folder is being shared (in server machine)
+showmount -e 10.20.12.138
