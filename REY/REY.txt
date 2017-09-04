@@ -23,3 +23,17 @@ CREATE USER 'cuauh'@'localhost' IDENTIFIED BY 'sB{6G<';
 GRANT ALL PRIVILEGES ON *.* TO 'cuauh'@'%' IDENTIFIED BY 'sB{6G<' WITH GRANT OPTION;
 GRANT ALL PRIVILEGES ON *.* TO 'cuauh'@'localhost' IDENTIFIED BY 'sB{6G<' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
+
+======= NFS =========
+--- Shows the NFS running in OWGIS
+showmount -e 10.20.12.137
+
+-- Test if the mount happens
+sudo mount -t nfs -o proto=tcp,port=2049 10.20.12.128:/ServerData/Pronosticos/Graficas /NFS/Graficas
+
+-- /etc/hosts.allow
+nfsd : 10.20.12.147
+
+-- /etc/fstab
+10.20.12.128:/ServerData/Pronosticos/Graficas /NFS/Graficas nfs   ro,hard,intr    0   0   
+

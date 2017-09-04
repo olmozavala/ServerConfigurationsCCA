@@ -80,6 +80,8 @@ sudo vi /etc/fstab
 
 ===== NFS out ========
 
+
+
 ==== Global Cron jobs ======
 -- Add the cronjobs in the 'root' cronjobs
 -- Mine didn't work with this line: sudo vi /etc/crontab  I used:
